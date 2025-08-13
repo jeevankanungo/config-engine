@@ -23,9 +23,7 @@ spring:
           clone-on-start: false
           default-label: main
           search-paths: config/{application}
-          # For private repositories, add:
-          #username: jeevankanungo
-          #password: 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
+          
       enabled: true
       uri: http://localhost:8081
       fail-fast: false
