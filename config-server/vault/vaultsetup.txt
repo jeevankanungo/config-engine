@@ -1,0 +1,45 @@
+ docker exec -it vault sh -c "
+  export VAULT_ADDR=http://127.0.0.1:8200 &&
+  export VAULT_TOKEN=myroot &&
+
+  # Database credentials
+  vault kv put secret/spring-cloud-integration \
+    database.username=prod_db_user \
+    database.password=super_secret_db_password_2024 \
+    database.url=jdbc:postgresql://prod-db:5432/myapp \
+
+  # API Keys and Tokens
+  vault kv put secret/spring-cloud-integration \
+    api.keys.weather=your-weather-api-key-here \
+    api.keys.news=your-news-api-key-here \
+    api.keys.payment=sk_live_payment_key_here \
+    api.keys.analytics=ua-analytics-key-here \
+
+  # External Service Credentials
+  vault kv put secret/spring-cloud-integration \
+    external.oauth.clientId=your-oauth-client-id \
+    external.oauth.clientSecret=your-oauth-client-secret \
+    external.jwt.secret=your-256-bit-jwt-signing-key \
+
+  # Email Configuration (sensitive parts)
+  vault kv put secret/spring-cloud-integration \
+    email.smtp.username=your-smtp-username \
+    email.smtp.password=your-smtp-password \
+
+  # Third-party Integration Secrets
+  vault kv put secret/spring-cloud-integration \
+    integrations.stripe.secretKey=sk_live_stripe_secret \
+    integrations.aws.accessKey=AKIA... \
+    integrations.aws.secretKey=secret-access-key \
+
+  # Encryption Keys
+  vault kv put secret/spring-cloud-integration \
+    encryption.aes.key=32-character-encryption-key-here \
+    encryption.rsa.privateKey=-----BEGIN-PRIVATE-KEY----- \
+
+  # Monitoring and Alerting
+  vault kv put secret/spring-cloud-integration \
+    monitoring.newrelic.apiKey=your-newrelic-key \
+    monitoring.datadog.apiKey=your-datadog-key \
+    alerting.slack.webhook=https://hooks.slack.com/...
+"

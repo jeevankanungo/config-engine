@@ -1,0 +1,36 @@
+# Development environment configuration
+app:
+  name: "Spring Cloud Integration"
+  version: "2.0.0-dev"
+  environment: "development"
+  configSource: "github-dev-profile"
+  debug: true
+
+# Development feature flags
+features:
+  github-config: true
+  vault-secrets: true
+  config-server: true
+  user-management: true
+  advanced-search: true
+  premium-features: true
+  beta-testing: true
+  debug-mode: true
+
+# Development settings
+settings:
+  pagination:
+    defaultPageSize: 5
+  cache:
+    ttl: 60
+  api:
+    timeout: 60
+    retries: 1
+
+# Development logging
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework.cloud.config: DEBUG
+    org.springframework.security: DEBUG
+    root: INFO

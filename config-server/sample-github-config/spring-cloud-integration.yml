@@ -1,0 +1,35 @@
+# Default configuration from GitHub
+app:
+  name: "Spring Cloud Integration"
+  version: "2.0.0"
+  environment: "default"
+  configSource: "github-repository"
+
+# Feature flags from GitHub
+features:
+  github-config: true
+  vault-secrets: true
+  config-server: true
+  user-management: true
+  advanced-search: false
+  premium-features: false
+  beta-testing: false
+
+# Application settings
+settings:
+  pagination:
+    defaultPageSize: 20
+    maxPageSize: 100
+  cache:
+    ttl: 3600
+    maxSize: 1000
+  api:
+    timeout: 30
+    retries: 3
+
+# Logging configuration
+logging:
+  level:
+    com.example: INFO
+    org.springframework.cloud.config: INFO
+    root: WARN

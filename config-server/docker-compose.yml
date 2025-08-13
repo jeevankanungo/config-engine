@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # Vault
+  vault:
+    image: hashicorp/vault:1.14.1
+    container_name: vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: myroot
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/data:/vault/data
+      - ./vault/config:/vault/config
+      - ./vault/policies:/vault/policies
+    command: vault server -dev -dev-root-token-id=myroot
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgreskc:
+    image: postgres:16.2  # Using a specific version is recommended for stability
+    container_name: postgreskc
+    restart: always
+    environment:
+      POSTGRES_DB: keycloakdb
+      POSTGRES_USER: keycloakuser
+      POSTGRES_PASSWORD: keycloakpassword
+    ports:
+      - "5433:5432"  # Exposed for potential external access (optional, can be removed if only Keycloak accesses it)
+    volumes:
+      - postgreskc_data:/var/lib/postgresql/data # Persistent storage for PostgreSQL data
+
+  # Keycloak
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.3
+    container_name: keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      KC_DB: postgres # Specifies the database vendor as PostgreSQL
+      KC_DB_URL: jdbc:postgresql://postgreskc:5432/keycloakdb # Connection string using the service name 'postgres'
+      KC_DB_USERNAME: keycloakuser
+      KC_DB_PASSWORD: keycloakpassword
+      KEYCLOAK_ADMIN: admin # Default admin username
+      KEYCLOAK_ADMIN_PASSWORD: admin # Default admin password
+      KC_HOSTNAME: localhost # Adjust as needed for your environment (e.g., your domain)
+      KC_HOSTNAME_PORT: 8080 # Port for hostname
+      KC_HTTP_ENABLED: "true" # Enable HTTP access (true or false)
+    command: start-dev
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # PostgreSQL for Unleash
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: unleash
+      POSTGRES_USER: unleash
+      POSTGRES_PASSWORD: unleash
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unleash"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Unleash
+  unleash:
+    image: unleashorg/unleash-server:5.5.1
+    container_name: unleash
+    ports:
+      - "4242:4242"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_NAME: unleash
+      DATABASE_USERNAME: unleash
+      DATABASE_PASSWORD: unleash
+      DATABASE_SSL: "false"
+      LOG_LEVEL: "warn"
+      #INIT_FRONTEND_API_TOKENS: "*:development.unleash-frontend-token"
+      #INIT_CLIENT_API_TOKENS: "*:*.unleash-client-token"
+      #INIT_ADMIN_API_TOKENS: "*:development.unleash-admin-token"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        sleep 20 &&
+        node index.js
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4242/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # Spring Boot Application
+  app:
+    build: .
+    container_name: spring-app
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      VAULT_HOST: vault
+      KEYCLOAK_HOST: keycloak
+      UNLEASH_HOST: unleash
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      vault:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      unleash:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+
+volumes:
+  keycloak_data:
+  postgres_data:
+  postgreskc_data:
