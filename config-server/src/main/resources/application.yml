@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: spring-cloud-integration
+  profiles:
+    active: prod,vault-enabled
+  main:
+    web-application-type: servlet
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.issuer-uri:}
+          jwk-set-uri: ${keycloak.jwk-set-uri:}
+  cloud:
+    #vault:
+      #enabled: false
+    config:
+      server:
+        git:
+          # CHANGE THIS to your GitHub repository
+          uri: https://github.com/jeevankanungo/config-repo.git
+          clone-on-start: false
+          default-label: main
+          search-paths: config/{application}
+          # For private repositories, add:
+          #username: jeevankanungo
+          #password: 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
+      enabled: true
+      uri: http://localhost:8081
+      fail-fast: false
+    vault:
+      enabled: true
+      host: localhost
+      port: 8200
+      scheme: http
+      authentication: token
+      token: myroot  # EXPLICIT TOKEN HERE
+      kv:
+        enabled: true
+        backend: secret
+        application-name: spring-cloud-integration
+        default-context: spring-cloud-integration
+      fail-fast: false
+      generic:
+        default-context: spring-cloud-integration
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Integration flags
+keycloak:
+  enabled: false
+  issuer-uri: http://localhost:8080/realms/spring-demo
+  jwk-set-uri: http://localhost:8080/realms/spring-demo/protocol/openid-connect/certs
+
+unleash:
+  enabled: true
+  api:
+    url: http://localhost:4242/api
+    token: "default:development.13923f525d1c612d57769a24adf90ca3a5104edeb9eb9a7b389cde90"
+  environment: development
+
+vault:
+  enabled: true
+
+# Fallback values
+app:
+  message: "Hello from Spring Cloud Integration!"
+  name: "Spring Cloud Integration (Fallback)"
+  version: "1.0.0"
+
+database:
+  username: "fallback_user"
+  password: "fallback_password"
+
+api:
+  keys:
+    weather: "fallback_weather_key"
+
+external:
+  oauth:
+    clientId: "fallback_client_id"
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.cloud.vault: DEBUG
+    com.example: INFO
+    root: INFO
+
