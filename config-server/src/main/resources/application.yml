@@ -33,7 +33,7 @@ spring:
       port: 8200
       scheme: http
       authentication: token
-      token: myroot  # EXPLICIT TOKEN HERE
+      token:   # EXPLICIT TOKEN HERE
       kv:
         enabled: true
         backend: secret
