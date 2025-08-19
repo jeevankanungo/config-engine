@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Building Config Client Standalone..."
+echo "Building Config Client Auto-Starting Library..."
 
 # Check if Maven is installed
 if ! command -v mvn &> /dev/null; then
@@ -29,10 +29,14 @@ if [ $? -eq 0 ]; then
     echo "✅ Build completed successfully!"
     echo "JAR file: target/config-client-standalone-1.0.0-shaded.jar"
     echo ""
-    echo "To run the application:"
-    echo "  ./run.sh"
-    echo "  or"
-    echo "  java -jar target/config-client-standalone-1.0.0-shaded.jar"
+    echo "🚀 Usage Options:"
+    echo "1. Standalone: ./run.sh"
+    echo "2. Library: Add JAR to your Spring Boot classpath"
+    echo "3. Maven install: mvn install (for local repository)"
+    echo ""
+    echo "📚 Library Integration:"
+    echo "   import com.example.configclient.util.ConfigClientLibrary;"
+    echo "   String value = ConfigClientLibrary.getProperty(\"app\", \"prod\", \"key\");"
 else
     echo "❌ Build failed!"
     exit 1

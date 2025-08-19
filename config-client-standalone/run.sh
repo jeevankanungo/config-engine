@@ -2,8 +2,8 @@
 
 JAR_FILE="target/config-client-standalone-1.0.0-shaded.jar"
 
-echo "Config Client Standalone - Startup Script"
-echo "=========================================="
+echo "Config Client Auto-Starting Library - Standalone Mode"
+echo "====================================================="
 
 # Check if JAR file exists
 if [ ! -f "$JAR_FILE" ]; then
@@ -29,12 +29,14 @@ if [ "$JAVA_VERSION" -lt 17 ]; then
     exit 1
 fi
 
-echo "Starting Config Client Application..."
-echo "JAR: $JAR_FILE"
-echo "Java Version: $JAVA_VERSION"
+echo "🚀 Starting Config Client Application in standalone mode..."
+echo "📍 JAR: $JAR_FILE"
+echo "☕ Java Version: $JAVA_VERSION"
+echo "📝 Config will auto-load from application.properties"
 echo ""
+echo "💡 Note: When used as library, auto-starts automatically!"
 echo "Press Ctrl+C to stop the application"
-echo "=========================================="
+echo "====================================================="
 
 # Run the application
 java -jar "$JAR_FILE"

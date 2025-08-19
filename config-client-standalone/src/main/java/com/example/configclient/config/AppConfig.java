@@ -45,4 +45,8 @@ public class AppConfig {
     public static long getHealthCheckInterval() {
         return Long.parseLong(properties.getProperty("config.health.check.interval", "600000"));
     }
+    
+    public static boolean isAutoStartEnabled() {
+        return Boolean.parseBoolean(properties.getProperty("config.client.autostart", "true"));
+    }
 }

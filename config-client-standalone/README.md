@@ -1,111 +1,185 @@
-# Config Client Standalone Application
+# Config Client Auto-Starting Library
 
-A Java 17 standalone application that fetches configuration from a config server and stores it in memory using scheduled jobs.
+A Java 17 standalone application that automatically starts when loaded as a library, fetching configuration from a config server and storing it in memory using scheduled jobs.
 
-## Features
+## ✨ Key Features
 
-- **Scheduled Configuration Refresh**: Automatically fetches configuration at configurable intervals
-- **Thread-Safe In-Memory Storage**: Uses ConcurrentHashMap for safe concurrent access
-- **Health Monitoring**: Periodic health checks to ensure all configurations are loaded
-- **HTTP Client**: Uses Java 11+ HttpClient for reliable config server communication
-- **Configurable**: All settings customizable via properties file
-- **Comprehensive Logging**: Structured logging with file rotation
-- **Graceful Shutdown**: Proper cleanup on application termination
+- **🚀 Auto-Start**: Automatically initializes when added to classpath (perfect for Spring Boot)
+- **🔄 Scheduled Refresh**: Automatically fetches configuration at configurable intervals
+- **🧵 Thread-Safe**: Uses ConcurrentHashMap for safe concurrent access
+- **🔍 Smart Change Detection**: Uses Google Guava MapDifference for precise change detection
+- **💾 In-Memory Storage**: Fast access to configurations
+- **📊 Health Monitoring**: Periodic health checks
+- **⚙️ Highly Configurable**: All settings customizable via properties
+- **📝 Comprehensive Logging**: Structured logging with detailed change tracking
 
-## Prerequisites
+## 🚀 Quick Start for Spring Boot Integration
 
-- Java 17 or higher
-- Maven 3.6 or higher
-- Access to a configuration server
+### 1. Add as Dependency
 
-## Quick Start
+Build this library and add the JAR to your Spring Boot application's classpath:
 
-1. **Build the application:**
-   ```bash
-   ./build.sh
-   ```
+```xml
+<dependency>
+    <groupId>com.example</groupId>
+    <artifactId>config-client-standalone</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
-2. **Configure your settings** in `src/main/resources/application.properties`:
-   ```properties
-   config.server.url=http://your-config-server:8888
-   config.applications=myapp,anotherapp
-   config.profiles=dev,prod
-   ```
+### 2. Configure (Optional)
 
-3. **Run the application:**
-   ```bash
-   ./run.sh
-   ```
+Add `application.properties` to your Spring Boot app's resources:
 
-## Configuration
+```properties
+config.server.url=http://your-config-server:8888
+config.applications=your-app,another-app
+config.profiles=dev,prod
+config.refresh.interval=300000
+```
 
-Edit `src/main/resources/application.properties`:
+### 3. Use in Your Code
+
+```java
+import com.example.configclient.util.ConfigClientLibrary;
+
+@Service
+public class MyService {
+    
+    public void someMethod() {
+        // Get configuration property
+        String dbUrl = ConfigClientLibrary.getProperty("myapp", "prod", "database.url", "localhost");
+        
+        // Check if config client is running
+        if (ConfigClientLibrary.isRunning()) {
+            System.out.println("Config client is active!");
+        }
+        
+        // Force refresh configurations
+        ConfigClientLibrary.refreshConfigurations();
+    }
+}
+```
+
+## 📋 How Auto-Start Works
+
+The library uses a **static initializer** in `ConfigClientManager` that runs when the class is first loaded:
+
+1. When your Spring Boot app starts and loads classes from this JAR
+2. The `ConfigClientManager` class is loaded
+3. Static initializer block executes automatically
+4. Config client starts fetching configurations in the background
+5. Your application can immediately access configurations via `ConfigClientLibrary`
+
+## 🔧 Configuration Options
 
 | Property | Description | Default |
 |----------|-------------|---------|
 | `config.server.url` | Config server base URL | `http://localhost:8888` |
-| `config.server.timeout` | HTTP timeout in milliseconds | `5000` |
-| `config.applications` | Comma-separated list of applications | `myapp` |
-| `config.profiles` | Comma-separated list of profiles | `default` |
-| `config.refresh.interval` | Refresh interval in milliseconds | `300000` (5 min) |
-| `config.health.check.interval` | Health check interval in milliseconds | `600000` (10 min) |
+| `config.server.timeout` | HTTP timeout (ms) | `5000` |
+| `config.applications` | Applications to monitor | `myapp` |
+| `config.profiles` | Profiles to monitor | `default` |
+| `config.refresh.interval` | Refresh interval (ms) | `300000` |
+| `config.health.check.interval` | Health check interval (ms) | `600000` |
+| `config.client.autostart` | Enable auto-start | `true` |
 
-## Usage
+## 🎯 Guava MapDifference Integration
 
-### Programmatic Access
+The library now uses Google Guava's `MapDifference` for precise change detection:
 
-```java
-// Get a specific property
-String dbUrl = ConfigUtil.getProperty("myapp", "prod", "database.url", "localhost");
-
-// Print all loaded configurations
-ConfigUtil.printAllConfigurations();
+```
+Configuration refreshed for myapp-prod with changes: 
+Added: [new.property]; Modified: [database.timeout]; Removed: [old.setting];
 ```
 
-### Monitoring
+This provides detailed insights into exactly what changed between configuration versions.
 
-- Logs are written to both console and `logs/config-client.log`
-- Application prints configuration status 10 seconds after startup
-- Health checks run every 10 minutes by default
+## 📖 API Reference
 
-## Project Structure
+### ConfigClientLibrary Methods
+
+```java
+// Get property with default
+String value = ConfigClientLibrary.getProperty("app", "prod", "key", "default");
+
+// Get complete configuration
+Configuration config = ConfigClientLibrary.getConfiguration("app", "prod");
+
+// Get all configurations
+Map<String, Configuration> all = ConfigClientLibrary.getAllConfigurations();
+
+// Force refresh
+ConfigClientLibrary.refreshConfigurations();
+
+// Check status
+boolean running = ConfigClientLibrary.isRunning();
+int count = ConfigClientLibrary.getConfigurationCount();
+
+// Debug output
+ConfigClientLibrary.printConfigurations();
+```
+
+## 🏗️ Building and Packaging
+
+```bash
+# Build the library
+./build.sh
+
+# For use as dependency in other projects
+mvn install
+```
+
+## 🔧 Standalone Usage
+
+You can still run it standalone:
+
+```bash
+java -jar target/config-client-standalone-1.0.0-shaded.jar
+```
+
+## 🐛 Troubleshooting
+
+### Auto-Start Not Working
+- Ensure JAR is in classpath
+- Check `config.client.autostart=true` in properties
+- Verify logs for initialization messages
+
+### Configuration Not Loading
+- Check config server URL and connectivity
+- Verify application and profile names
+- Review logs for HTTP errors
+
+### Spring Boot Integration Issues
+- Ensure proper dependency configuration
+- Check for classpath conflicts
+- Verify property file location
+
+## 📁 Project Structure
 
 ```
 config-client-standalone/
-├── pom.xml
-├── build.sh
-├── run.sh
-├── README.md
-└── src/main/
-    ├── java/com/example/configclient/
-    │   ├── ConfigClientApplication.java
-    │   ├── config/AppConfig.java
-    │   ├── model/Configuration.java
-    │   ├── service/ConfigService.java
-    │   ├── scheduler/ConfigScheduler.java
-    │   └── util/ConfigUtil.java
-    └── resources/
-        ├── application.properties
-        └── logback.xml
+├── src/main/java/com/example/configclient/
+│   ├── ConfigClientApplication.java      # Standalone main class
+│   ├── ConfigClientManager.java          # Auto-starting singleton
+│   ├── config/AppConfig.java             # Configuration loader
+│   ├── model/Configuration.java          # Data model
+│   ├── service/ConfigService.java        # HTTP client service
+│   ├── scheduler/ConfigScheduler.java    # Guava-enhanced scheduler
+│   └── util/
+│       ├── ConfigUtil.java               # Utility functions
+│       └── ConfigClientLibrary.java      # Spring Boot API
+└── src/main/resources/
+    ├── application.properties             # Configuration
+    └── logback.xml                       # Logging config
 ```
 
-## Building and Packaging
+## 🎉 Benefits for Spring Boot Applications
 
-```bash
-# Build only
-mvn clean package
+1. **Zero Configuration**: Just add JAR to classpath
+2. **Non-Intrusive**: Runs in background threads
+3. **Production Ready**: Comprehensive error handling and logging
+4. **Performance**: Fast in-memory access to configurations
+5. **Detailed Monitoring**: Precise change detection and health checks
+6. **Easy Integration**: Simple static API for configuration access
 
-# Create distribution ZIP
-zip -r config-client-standalone.zip . -x "target/*" "logs/*" "*.zip"
-```
-
-## Troubleshooting
-
-1. **Build Fails**: Ensure Java 17+ and Maven are installed and in PATH
-2. **Connection Issues**: Verify config server URL and network connectivity
-3. **Memory Issues**: Increase JVM memory with `-Xmx512m` or higher
-4. **Logging Issues**: Ensure `logs/` directory is writable
-
-## License
-
-This project is provided as-is for educational and development purposes.
+Perfect for microservices that need dynamic configuration management! 🚀
